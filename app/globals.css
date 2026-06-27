@@ -1,0 +1,182 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", var(--font-sans), system-ui, sans-serif;
+  
+  --animate-fade-up: fade-up 0.5s ease-out forwards;
+  --animate-fade-in: fade-in 0.3s ease-out forwards;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #3f3f46; /* zinc-700 */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* slate-400 */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #52525b; /* zinc-600 */
+}
+
+/* Base Body Styles */
+body {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Typography styles for article contents */
+.prose {
+  max-width: 65ch;
+  color: #334155; /* slate-700 */
+}
+
+.dark .prose {
+  color: #d4d4d8; /* zinc-300 */
+}
+
+.prose p {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+  line-height: 1.75;
+  font-size: 1.1rem;
+}
+
+.prose h2 {
+  font-size: 1.625rem;
+  font-weight: 700;
+  margin-top: 2em;
+  margin-bottom: 1em;
+  line-height: 1.3333333;
+  color: #0f172a; /* slate-900 */
+  letter-spacing: -0.02em;
+}
+
+.dark .prose h2 {
+  color: #f4f4f5; /* zinc-100 */
+}
+
+.prose h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+  line-height: 1.6;
+  color: #0f172a;
+}
+
+.dark .prose h3 {
+  color: #f4f4f5;
+}
+
+.prose code {
+  color: #ec4899; /* pink-500 */
+  font-weight: 600;
+  font-size: 0.875em;
+  background-color: #f1f5f9; /* slate-100 */
+  padding: 0.25em 0.5em;
+  border-radius: 0.375rem;
+  font-family: var(--font-mono), monospace;
+}
+
+.dark .prose code {
+  color: #f472b6;
+  background-color: #27272a; /* zinc-800 */
+}
+
+.prose pre {
+  color: #f8fafc;
+  background-color: #0f172a; /* slate-900 */
+  overflow-x: auto;
+  padding: 1.25em 1.5em;
+  border-radius: 0.75rem;
+  margin-top: 1.6em;
+  margin-bottom: 1.6em;
+}
+
+.dark .prose pre {
+  background-color: #18181b; /* zinc-900 */
+  border: 1px solid #27272a;
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 0.9em;
+  font-weight: 400;
+}
+
+.prose blockquote {
+  font-weight: 500;
+  font-style: italic;
+  color: #4f46e5; /* indigo-600 */
+  border-left-width: 4px;
+  border-left-color: #4f46e5;
+  padding-left: 1.5em;
+  margin-top: 1.6em;
+  margin-bottom: 1.6em;
+  font-size: 1.2rem;
+}
+
+.dark .prose blockquote {
+  color: #818cf8; /* indigo-400 */
+  border-left-color: #818cf8;
+}
+
+.prose ul {
+  list-style-type: disc;
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+  padding-left: 1.625em;
+}
+
+.prose ol {
+  list-style-type: decimal;
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+  padding-left: 1.625em;
+}
+
+.prose li {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.6;
+}
