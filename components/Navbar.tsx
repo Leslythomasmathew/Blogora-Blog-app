@@ -2,13 +2,17 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Sun, Moon, Menu, X } from "lucide-react";
+import { Sun, Moon, Menu, X, LogIn } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
+import LoginModal from "@/components/LoginModal";
 
 export default function Navbar() {
   const { resolvedTheme, setTheme } = useTheme();
+  const { user, logout } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   // Prevent hydration mismatch by waiting until mounted
   useEffect(() => {
@@ -64,6 +68,38 @@ export default function Navbar() {
               )}
             </button>
 
+            {/* Authentication Buttons (Desktop) */}
+            <div className="hidden md:flex items-center gap-3">
+              {user ? (
+                <div className="flex items-center gap-3 pl-2 border-l border-slate-200/60 dark:border-zinc-800">
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="h-8 w-8 rounded-full object-cover border border-slate-200 dark:border-zinc-750"
+                    />
+                    <span className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                      {user.name}
+                    </span>
+                  </div>
+                  <button
+                    onClick={logout}
+                    className="cursor-pointer text-xs font-bold text-red-500 hover:text-red-600 transition-colors focus-visible:outline-none"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setLoginModalOpen(true)}
+                  className="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl text-white bg-slate-900 hover:bg-slate-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200 transition-all duration-200 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                >
+                  <LogIn className="h-3.5 w-3.5" />
+                  Sign In
+                </button>
+              )}
+            </div>
+
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -100,8 +136,51 @@ export default function Navbar() {
               Articles
             </a>
           </nav>
+          
+          {/* Authentication Section (Mobile Drawer) */}
+          <div className="border-t border-slate-150 dark:border-zinc-900 pt-3">
+            {user ? (
+              <div className="px-3 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="h-9 w-9 rounded-full object-cover border border-slate-200 dark:border-zinc-700"
+                  />
+                  <span className="text-sm font-semibold text-slate-800 dark:text-zinc-200">
+                    {user.name}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="cursor-pointer text-sm font-bold text-red-500 hover:text-red-600 transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div className="px-3">
+                <button
+                  onClick={() => {
+                    setLoginModalOpen(true);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="cursor-pointer flex w-full items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold rounded-xl text-white bg-slate-900 hover:bg-slate-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200 transition-all duration-200"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Sign In
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
+
+      {/* Login Modal Overlay */}
+      <LoginModal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
     </header>
   );
 }

@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { useState, ReactNode } from "react";
+import { AuthProvider } from "@/context/AuthContext";
 
 export default function Providers({ children }: { children: ReactNode }) {
   // Initialize QueryClient inside component state to prevent cache sharing across SSR requests
@@ -21,7 +22,9 @@ export default function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
