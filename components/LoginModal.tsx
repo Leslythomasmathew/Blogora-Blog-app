@@ -32,17 +32,15 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     console.log("Form submitted. isSignUp:", isSignUp, "name:", name, "email:", email);
-    if (isSignUp && !name) {
-      setError("Please enter your name.");
-      return;
-    }
+    
     if (!email || !password) {
       setError("Please fill in all fields.");
       return;
     }
 
-    if (password.length < 4) {
-      setError("Password must be at least 4 characters.");
+    // Basic format validation
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address.");
       return;
     }
 
@@ -51,8 +49,14 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
     try {
       if (isSignUp) {
-        console.log("Calling mock register with:", name, email);
-        await register(name, email);
+        // Fallback name if left blank
+        let signUpName = name.trim();
+        if (!signUpName) {
+          const namePart = email.split("@")[0];
+          signUpName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+        }
+        console.log("Calling mock register with:", signUpName, email);
+        await register(signUpName, email);
       } else {
         console.log("Calling mock login with:", email);
         await login(email);
@@ -120,7 +124,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
           
           {/* Name Input (Sign Up Only) */}
           {isSignUp && (
