@@ -31,6 +31,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    console.log("Form submitted. isSignUp:", isSignUp, "name:", name, "email:", email);
     if (isSignUp && !name) {
       setError("Please enter your name.");
       return;
@@ -50,10 +51,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
     try {
       if (isSignUp) {
+        console.log("Calling mock register with:", name, email);
         await register(name, email);
       } else {
+        console.log("Calling mock login with:", email);
         await login(email);
       }
+      console.log("Authentication successful! Closing modal.");
       onClose();
       // Reset state for next open
       setIsSignUp(false);
@@ -61,6 +65,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       setEmail("");
       setPassword("");
     } catch (err) {
+      console.error("Auth submit error:", err);
       setError("Authentication failed. Please try again.");
     } finally {
       setLoading(false);
@@ -78,6 +83,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         
         {/* Close Button */}
         <button
+          type="button"
           onClick={onClose}
           className="absolute right-4 top-4 p-2 rounded-xl text-slate-400 dark:text-zinc-500 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors focus-visible:outline-none"
           aria-label="Close modal"
@@ -212,6 +218,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <p className="text-xs text-slate-500 dark:text-zinc-400">
             {isSignUp ? "Already have an account? " : "Don't have an account? "}
             <button
+              type="button"
               onClick={handleToggleMode}
               className="cursor-pointer text-violet-600 dark:text-violet-400 font-bold hover:underline focus:outline-none focus:underline"
             >
@@ -219,6 +226,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             </button>
           </p>
           <button
+            type="button"
             onClick={onClose}
             className="cursor-pointer mt-4 text-xs font-semibold text-slate-400 hover:text-slate-600 dark:text-zinc-50 dark:hover:text-zinc-300 transition-colors"
           >
