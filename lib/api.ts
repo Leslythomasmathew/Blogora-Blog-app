@@ -26,7 +26,9 @@ export async function getMockPosts(): Promise<Post[]> {
     }
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch from mock API: ${res.status}`);
+      console.warn(`Failed to fetch from mock API: ${res.status}. Using local database fallback.`);
+      const { MOCK_POSTS } = await import("./data");
+      return MOCK_POSTS;
     }
 
     const data = await res.json();
