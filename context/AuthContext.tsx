@@ -21,15 +21,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user session from localStorage on mount
+  // Load user session from localStorage on mount, guarded for private/incognito frames
   useEffect(() => {
-    const savedUser = localStorage.getItem("blogora_user");
-    if (savedUser) {
-      try {
+    try {
+      const savedUser = typeof window !== "undefined" ? localStorage.getItem("blogora_user") : null;
+      if (savedUser) {
         setUser(JSON.parse(savedUser));
-      } catch (e) {
-        console.error("Failed to parse user session", e);
       }
+    } catch (e) {
+      console.warn("Storage access denied: session cannot be restored from localStorage.", e);
     }
     setLoading(false);
   }, []);
@@ -38,18 +38,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 600));
     
-    // Extract a mock name from the email (e.g. john@example.com -> John)
+    // Extract a mock name from the email
     const namePart = email.split("@")[0];
     const name = namePart.charAt(0).toUpperCase() + namePart.slice(1);
     
     const mockUser: User = {
       name,
       email,
-      avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80` // Standard avatar
+      avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`
     };
     
     setUser(mockUser);
-    localStorage.setItem("blogora_user", JSON.stringify(mockUser));
+    
+    try {
+      localStorage.setItem("blogora_user", JSON.stringify(mockUser));
+    } catch (e) {
+      console.warn("Storage access denied: session will not persist across reloads.", e);
+    }
   };
 
   const register = async (name: string, email: string) => {
@@ -59,16 +64,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const mockUser: User = {
       name,
       email,
-      avatar: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80` // Premium avatar
+      avatar: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80`
     };
     
     setUser(mockUser);
-    localStorage.setItem("blogora_user", JSON.stringify(mockUser));
+    
+    try {
+      localStorage.setItem("blogora_user", JSON.stringify(mockUser));
+    } catch (e) {
+      console.warn("Storage access denied: session will not persist across reloads.", e);
+    }
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("blogora_user");
+    try {
+      localStorage.removeItem("blogora_user");
+    } catch (e) {
+      console.warn("Storage access denied: failed to clear localStorage.", e);
+    }
   };
 
   return (
