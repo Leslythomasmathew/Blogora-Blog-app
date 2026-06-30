@@ -2,21 +2,10 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import BlogGrid from "@/components/BlogGrid";
 import Footer from "@/components/Footer";
-import { Post } from "@/lib/data";
+import { getMockPosts } from "@/lib/api";
 
 export default async function Home() {
-  let posts: Post[] = [];
-  try {
-    const res = await fetch("https://raw.githubusercontent.com/Leslythomasmathew/Blogora-Blog-app/main/db.json", {
-      next: { revalidate: 60 } // Cache for 1 minute
-    });
-    if (res.ok) {
-      const data = await res.json();
-      posts = data.posts || [];
-    }
-  } catch (error) {
-    console.error("Failed to load posts from mock API", error);
-  }
+  const posts = await getMockPosts();
 
   // Retrieve featured post (fallback to first post if none matches)
   const featuredPost = posts.find((post) => post.featured) || posts[0] || null;

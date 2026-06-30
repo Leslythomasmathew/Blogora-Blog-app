@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getMockPosts } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
   try {
@@ -6,16 +7,7 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search") || "";
     const category = searchParams.get("category") || "";
 
-    const res = await fetch("https://raw.githubusercontent.com/Leslythomasmathew/Blogora-Blog-app/main/db.json", {
-      next: { revalidate: 60 } // Cache for 1 minute
-    });
-
-    if (!res.ok) {
-      throw new Error("Failed to fetch mock API database");
-    }
-
-    const data = await res.json();
-    let filtered = data.posts || [];
+    let filtered = await getMockPosts();
 
     // Filter by Category
     if (category && category.toLowerCase() !== "all") {

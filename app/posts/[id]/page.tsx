@@ -8,30 +8,16 @@ import Navbar from "@/components/Navbar";
 import BlogCard from "@/components/BlogCard";
 import AudioReader from "@/components/AudioReader";
 import Footer from "@/components/Footer";
+import { getMockPosts, getMockPostById } from "@/lib/api";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-async function getPosts(): Promise<Post[]> {
-  try {
-    const res = await fetch("https://raw.githubusercontent.com/Leslythomasmathew/Blogora-Blog-app/main/db.json", {
-      next: { revalidate: 60 } // Cache for 1 minute
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.posts || [];
-  } catch (error) {
-    console.error("Failed to load posts from mock API:", error);
-    return [];
-  }
-}
-
 // Generate dynamic SEO metadata for each blog post
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const posts = await getPosts();
-  const post = posts.find((p) => p.id === id);
+  const post = await getMockPostById(id);
 
   if (!post) {
     return {
@@ -62,7 +48,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 // Enable Next.js to statically pre-render these dynamic paths at build time (SSG optimization)
 export async function generateStaticParams() {
-  const posts = await getPosts();
+  const posts = await getMockPosts();
   return posts.map((post) => ({
     id: post.id,
   }));
@@ -70,7 +56,7 @@ export async function generateStaticParams() {
 
 export default async function PostPage({ params }: PageProps) {
   const { id } = await params;
-  const posts = await getPosts();
+  const posts = await getMockPosts();
   const post = posts.find((p) => p.id === id);
 
   if (!post) {

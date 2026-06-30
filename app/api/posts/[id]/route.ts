@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getMockPostById } from "@/lib/api";
 
 export async function GET(
   req: NextRequest,
@@ -6,18 +7,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    
-    const res = await fetch("https://raw.githubusercontent.com/Leslythomasmathew/Blogora-Blog-app/main/db.json", {
-      next: { revalidate: 60 } // Cache for 1 minute
-    });
-
-    if (!res.ok) {
-      throw new Error("Failed to fetch mock API database");
-    }
-
-    const data = await res.json();
-    const posts = data.posts || [];
-    const post = posts.find((p: any) => p.id === id);
+    const post = await getMockPostById(id);
 
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
