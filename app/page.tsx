@@ -1,15 +1,30 @@
-import { MOCK_POSTS } from "@/lib/data";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import BlogGrid from "@/components/BlogGrid";
 import Footer from "@/components/Footer";
+import { Post } from "@/lib/data";
 
-export default function Home() {
+export default async function Home() {
+  let posts: Post[] = [];
+  try {
+    const res = await fetch("https://raw.githubusercontent.com/Leslythomasmathew/Blogora-Blog-app/main/db.json", {
+      next: { revalidate: 60 } // Cache for 1 minute
+    });
+    if (res.ok) {
+      const data = await res.json();
+      posts = data.posts || [];
+    }
+  } catch (error) {
+    console.error("Failed to load posts from mock API", error);
+  }
+
   // Retrieve featured post (fallback to first post if none matches)
-  const featuredPost = MOCK_POSTS.find((post) => post.featured) || MOCK_POSTS[0];
+  const featuredPost = posts.find((post) => post.featured) || posts[0] || null;
   
   // Filter out the featured post from the main grid list to avoid duplication
-  const gridPosts = MOCK_POSTS.filter((post) => post.id !== featuredPost.id);
+  const gridPosts = featuredPost 
+    ? posts.filter((post) => post.id !== featuredPost.id)
+    : posts;
 
   return (
     <>
@@ -19,7 +34,7 @@ export default function Home() {
       {/* Main Page Layout */}
       <main className="flex-grow">
         {/* Featured Post Hero Banner */}
-        <Hero post={featuredPost} />
+        {featuredPost && <Hero post={featuredPost} />}
         
         {/* Dynamic Filterable Articles Grid */}
         <BlogGrid initialPosts={gridPosts} />

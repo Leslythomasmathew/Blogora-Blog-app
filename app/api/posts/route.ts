@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MOCK_POSTS } from "@/lib/data";
 
 export async function GET(req: NextRequest) {
   try {
@@ -7,12 +6,21 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search") || "";
     const category = searchParams.get("category") || "";
 
-    let filtered = [...MOCK_POSTS];
+    const res = await fetch("https://raw.githubusercontent.com/Leslythomasmathew/Blogora-Blog-app/main/db.json", {
+      next: { revalidate: 60 } // Cache for 1 minute
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch mock API database");
+    }
+
+    const data = await res.json();
+    let filtered = data.posts || [];
 
     // Filter by Category
     if (category && category.toLowerCase() !== "all") {
       filtered = filtered.filter(
-        (post) => post.category.toLowerCase() === category.toLowerCase()
+        (post: any) => post.category.toLowerCase() === category.toLowerCase()
       );
     }
 
@@ -20,21 +28,18 @@ export async function GET(req: NextRequest) {
     if (search) {
       const query = search.toLowerCase();
       filtered = filtered.filter(
-        (post) =>
+        (post: any) =>
           post.title.toLowerCase().includes(query) ||
           post.excerpt.toLowerCase().includes(query) ||
           post.category.toLowerCase().includes(query)
       );
     }
 
-    // Simulate network delay for a more realistic loading state in React Query
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
     return NextResponse.json(filtered);
-  } catch (error) {
+  } catch (error: any) {
     console.error("API error fetching posts:", error);
     return NextResponse.json(
-      { error: "Failed to fetch posts" },
+      { error: error.message || "Failed to fetch posts" },
       { status: 500 }
     );
   }

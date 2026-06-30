@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Calendar, Clock, Link as LinkIcon } from "lucide-react";
 import { TwitterIcon, FacebookIcon } from "@/components/BrandIcons";
-import { MOCK_POSTS } from "@/lib/data";
+import { Post } from "@/lib/data";
 import Navbar from "@/components/Navbar";
 import BlogCard from "@/components/BlogCard";
 import AudioReader from "@/components/AudioReader";
@@ -13,10 +13,25 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+async function getPosts(): Promise<Post[]> {
+  try {
+    const res = await fetch("https://raw.githubusercontent.com/Leslythomasmathew/Blogora-Blog-app/main/db.json", {
+      next: { revalidate: 60 } // Cache for 1 minute
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.posts || [];
+  } catch (error) {
+    console.error("Failed to load posts from mock API:", error);
+    return [];
+  }
+}
+
 // Generate dynamic SEO metadata for each blog post
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const post = MOCK_POSTS.find((p) => p.id === id);
+  const posts = await getPosts();
+  const post = posts.find((p) => p.id === id);
 
   if (!post) {
     return {
@@ -47,27 +62,29 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 // Enable Next.js to statically pre-render these dynamic paths at build time (SSG optimization)
 export async function generateStaticParams() {
-  return MOCK_POSTS.map((post) => ({
+  const posts = await getPosts();
+  return posts.map((post) => ({
     id: post.id,
   }));
 }
 
 export default async function PostPage({ params }: PageProps) {
   const { id } = await params;
-  const post = MOCK_POSTS.find((p) => p.id === id);
+  const posts = await getPosts();
+  const post = posts.find((p) => p.id === id);
 
   if (!post) {
     notFound();
   }
 
   // Find related articles (same category, excluding current post)
-  let relatedPosts = MOCK_POSTS.filter(
+  let relatedPosts = posts.filter(
     (p) => p.category === post.category && p.id !== post.id
   ).slice(0, 3);
 
   // Fallback to random posts if not enough in same category
   if (relatedPosts.length < 3) {
-    const additional = MOCK_POSTS.filter(
+    const additional = posts.filter(
       (p) => p.id !== post.id && !relatedPosts.some((r) => r.id === p.id)
     ).slice(0, 3 - relatedPosts.length);
     relatedPosts = [...relatedPosts, ...additional];
