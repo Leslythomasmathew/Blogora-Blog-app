@@ -11,6 +11,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   login: (email: string) => Promise<void>;
+  register: (name: string, email: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -51,13 +52,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("blogora_user", JSON.stringify(mockUser));
   };
 
+  const register = async (name: string, email: string) => {
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    
+    const mockUser: User = {
+      name,
+      email,
+      avatar: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80` // Premium avatar
+    };
+    
+    setUser(mockUser);
+    localStorage.setItem("blogora_user", JSON.stringify(mockUser));
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem("blogora_user");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   );

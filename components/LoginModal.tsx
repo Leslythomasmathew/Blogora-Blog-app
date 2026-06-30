@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { X, Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { X, Loader2, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 interface LoginModalProps {
@@ -10,7 +10,9 @@ interface LoginModalProps {
 }
 
 export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const { login } = useAuth();
+  const { login, register } = useAuth();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,8 +21,20 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   if (!isOpen) return null;
 
+  const handleToggleMode = () => {
+    setIsSignUp(!isSignUp);
+    setError("");
+    setName("");
+    setEmail("");
+    setPassword("");
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (isSignUp && !name) {
+      setError("Please enter your name.");
+      return;
+    }
     if (!email || !password) {
       setError("Please fill in all fields.");
       return;
@@ -35,10 +49,19 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setError("");
 
     try {
-      await login(email);
+      if (isSignUp) {
+        await register(name, email);
+      } else {
+        await login(email);
+      }
       onClose();
+      // Reset state for next open
+      setIsSignUp(false);
+      setName("");
+      setEmail("");
+      setPassword("");
     } catch (err) {
-      setError("Failed to sign in. Please try again.");
+      setError("Authentication failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -73,10 +96,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             </div>
           </div>
           <h3 className="font-display text-xl font-bold text-slate-900 dark:text-zinc-100">
-            Welcome back
+            {isSignUp ? "Create an account" : "Welcome back"}
           </h3>
           <p className="mt-1.5 text-xs text-slate-500 dark:text-zinc-400">
-            Sign in to access your dashboard, customize reading lists, and bookmark insights.
+            {isSignUp 
+              ? "Join Blogora to bookmark insights, personalize your reading feed, and join discussions."
+              : "Sign in to access your dashboard, customize reading lists, and bookmark insights."
+            }
           </p>
         </div>
 
@@ -87,9 +113,31 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </div>
         )}
 
-        {/* Login Form */}
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           
+          {/* Name Input (Sign Up Only) */}
+          {isSignUp && (
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+                Full Name
+              </label>
+              <div className="relative">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500">
+                  <User className="h-4 w-4" />
+                </div>
+                <input
+                  type="text"
+                  required
+                  placeholder="John Doe"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-200/80 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 dark:border-zinc-800/80 dark:bg-zinc-900/40 dark:text-zinc-50 dark:placeholder-zinc-500 transition-all duration-200"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Email Input */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
@@ -116,9 +164,11 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               <label className="text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
                 Password
               </label>
-              <span className="text-2xs font-semibold text-violet-600 dark:text-violet-400 cursor-pointer hover:underline">
-                Forgot password?
-              </span>
+              {!isSignUp && (
+                <span className="text-2xs font-semibold text-violet-600 dark:text-violet-400 cursor-pointer hover:underline">
+                  Forgot password?
+                </span>
+              )}
             </div>
             <div className="relative">
               <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500">
@@ -147,27 +197,30 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <button
             type="submit"
             disabled={loading}
-            className="cursor-pointer w-full flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold rounded-xl text-white bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500 disabled:opacity-50 transition-colors duration-200 shadow-md shadow-violet-500/10 focus-visible:outline-none"
+            className="cursor-pointer w-full flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold rounded-xl text-white bg-slate-900 dark:bg-zinc-100 dark:text-zinc-950 hover:bg-slate-800 dark:hover:bg-zinc-200 disabled:opacity-50 transition-colors duration-200 shadow-md shadow-violet-500/10 focus-visible:outline-none"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              "Sign In"
+              isSignUp ? "Create Account" : "Sign In"
             )}
           </button>
         </form>
 
-        {/* Footer actions */}
+        {/* Footer Toggle */}
         <div className="mt-6 text-center border-t border-slate-100 dark:border-zinc-800/80 pt-4">
           <p className="text-xs text-slate-500 dark:text-zinc-400">
-            Don&apos;t have an account?{" "}
-            <span className="text-violet-600 dark:text-violet-400 font-semibold cursor-pointer hover:underline">
-              Create account
-            </span>
+            {isSignUp ? "Already have an account? " : "Don't have an account? "}
+            <button
+              onClick={handleToggleMode}
+              className="cursor-pointer text-violet-600 dark:text-violet-400 font-bold hover:underline focus:outline-none focus:underline"
+            >
+              {isSignUp ? "Sign In" : "Create account"}
+            </button>
           </p>
           <button
             onClick={onClose}
-            className="cursor-pointer mt-4 text-xs font-semibold text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors"
+            className="cursor-pointer mt-4 text-xs font-semibold text-slate-400 hover:text-slate-600 dark:text-zinc-50 dark:hover:text-zinc-300 transition-colors"
           >
             Continue as Guest
           </button>
