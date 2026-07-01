@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, FormEvent } from "react";
-import { X, Loader2, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { useState, FormEvent, useEffect } from "react";
+import { X, Loader2, Mail, Lock, Eye, EyeOff, User, AlertCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 interface LoginModalProps {
@@ -18,6 +18,23 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+
+  // Clear error on modal close or toggle
+  useEffect(() => {
+    if (!isOpen) {
+      setError("");
+    }
+  }, [isOpen]);
+
+  // Auto-dismiss error toast popup after 4 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError("");
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   if (!isOpen) return null;
 
@@ -88,51 +105,61 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-zinc-950/70 backdrop-blur-sm animate-fade-in">
-      
-      {/* Click outside to close */}
-      <div className="absolute inset-0" onClick={onClose} />
-
-      {/* Modal Container */}
-      <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl animate-fade-up z-10">
-        
-        {/* Close Button */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 p-2 rounded-xl text-slate-400 dark:text-zinc-500 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors focus-visible:outline-none"
-          aria-label="Close modal"
-        >
-          <X className="h-4.5 w-4.5" />
-        </button>
-
-        {/* Modal Header */}
-        <div className="text-center mb-6">
-          <div className="flex justify-center mb-4">
-            <div className="flex items-center gap-1.5 p-2 rounded-2xl bg-violet-50 dark:bg-violet-950/30 border border-violet-100/50 dark:border-violet-900/30">
-              <img src="/logo.jpg" alt="Blogora Logo" className="h-9 w-9 rounded-lg object-cover object-top" />
-              <span className="font-display font-extrabold text-lg tracking-tight text-slate-900 dark:text-zinc-50 pr-2">
-                Blogora
-              </span>
-            </div>
-          </div>
-          <h3 className="font-display text-xl font-bold text-slate-900 dark:text-zinc-100">
-            {isSignUp ? "Create an account" : "Welcome back"}
-          </h3>
-          <p className="mt-1.5 text-xs text-slate-500 dark:text-zinc-400">
-            {isSignUp 
-              ? "Join Blogora to bookmark insights, personalize your reading feed, and join discussions."
-              : "Sign in to access your dashboard, customize reading lists, and bookmark insights."
-            }
-          </p>
+    <>
+      {/* Floating Toast Popup for Errors */}
+      {error && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-4.5 py-3 rounded-2xl bg-red-600 dark:bg-red-950 text-white dark:text-red-300 border border-red-500/20 dark:border-red-900/40 shadow-xl shadow-red-500/10 backdrop-blur-md animate-slide-down">
+          <AlertCircle className="h-4.5 w-4.5 shrink-0 text-red-100 dark:text-red-400" />
+          <span className="text-xs font-semibold tracking-wide">{error}</span>
+          <button
+            type="button"
+            onClick={() => setError("")}
+            className="p-1 rounded-lg hover:bg-white/10 dark:hover:bg-zinc-800 transition-colors"
+            aria-label="Dismiss alert"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
         </div>
+      )}
 
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-4 p-3.5 text-xs rounded-xl bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400 border border-red-100 dark:border-red-900/20">
-            {error}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-zinc-950/70 backdrop-blur-sm animate-fade-in">
+        
+        {/* Click outside to close */}
+        <div className="absolute inset-0" onClick={onClose} />
+
+        {/* Modal Container */}
+        <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl animate-fade-up z-10">
+          
+          {/* Close Button */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-4 top-4 p-2 rounded-xl text-slate-400 dark:text-zinc-500 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors focus-visible:outline-none"
+            aria-label="Close modal"
+          >
+            <X className="h-4.5 w-4.5" />
+          </button>
+
+          {/* Modal Header */}
+          <div className="text-center mb-6">
+            <div className="flex justify-center mb-4">
+              <div className="flex items-center gap-1.5 p-2 rounded-2xl bg-violet-50 dark:bg-violet-950/30 border border-violet-100/50 dark:border-violet-900/30">
+                <img src="/logo.jpg" alt="Blogora Logo" className="h-9 w-9 rounded-lg object-cover object-top" />
+                <span className="font-display font-extrabold text-lg tracking-tight text-slate-900 dark:text-zinc-50 pr-2">
+                  Blogora
+                </span>
+              </div>
+            </div>
+            <h3 className="font-display text-xl font-bold text-slate-900 dark:text-zinc-100">
+              {isSignUp ? "Create an account" : "Welcome back"}
+            </h3>
+            <p className="mt-1.5 text-xs text-slate-500 dark:text-zinc-400">
+              {isSignUp 
+                ? "Join Blogora to bookmark insights, personalize your reading feed, and join discussions."
+                : "Sign in to access your dashboard, customize reading lists, and bookmark insights."
+              }
+            </p>
           </div>
-        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
@@ -251,5 +278,6 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
       </div>
     </div>
+    </>
   );
 }
