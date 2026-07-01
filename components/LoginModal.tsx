@@ -33,13 +33,24 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     e.preventDefault();
     console.log("Form submitted. isSignUp:", isSignUp, "name:", name, "email:", email);
     
-    if (!email || !password) {
-      setError("Please fill in all fields.");
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail && !trimmedPassword) {
+      setError("Email and Password fields cannot be empty.");
+      return;
+    }
+    if (!trimmedEmail) {
+      setError("Email address cannot be empty.");
+      return;
+    }
+    if (!trimmedPassword) {
+      setError("Password cannot be empty.");
       return;
     }
 
     // Basic format validation
-    if (!email.includes("@")) {
+    if (!trimmedEmail.includes("@")) {
       setError("Please enter a valid email address.");
       return;
     }
@@ -52,14 +63,14 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         // Fallback name if left blank
         let signUpName = name.trim();
         if (!signUpName) {
-          const namePart = email.split("@")[0];
+          const namePart = trimmedEmail.split("@")[0];
           signUpName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
         }
-        console.log("Calling mock register with:", signUpName, email);
-        await register(signUpName, email);
+        console.log("Calling mock register with:", signUpName, trimmedEmail);
+        await register(signUpName, trimmedEmail);
       } else {
-        console.log("Calling mock login with:", email);
-        await login(email);
+        console.log("Calling mock login with:", trimmedEmail);
+        await login(trimmedEmail);
       }
       console.log("Authentication successful! Closing modal.");
       onClose();
@@ -68,9 +79,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       setName("");
       setEmail("");
       setPassword("");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Auth submit error:", err);
-      setError("Authentication failed. Please try again.");
+      setError(err.message || "Authentication failed. Please try again.");
     } finally {
       setLoading(false);
     }

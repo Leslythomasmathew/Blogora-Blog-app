@@ -10,23 +10,41 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  registeredUsers: User[];
   login: (email: string) => Promise<void>;
   register: (name: string, email: string) => Promise<void>;
   logout: () => void;
+  checkEmailExists: (email: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const DEFAULT_USERS: User[] = [
+  {
+    name: "Lesly Mathew",
+    email: "lesly@example.com",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+  }
+];
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [registeredUsers, setRegisteredUsers] = useState<User[]>(DEFAULT_USERS);
   const [loading, setLoading] = useState(true);
 
-  // Load user session from localStorage on mount, guarded for private/incognito frames
+  // Load user session and registered users list from localStorage on mount
   useEffect(() => {
     try {
       const savedUser = typeof window !== "undefined" ? localStorage.getItem("blogora_user") : null;
       if (savedUser) {
         setUser(JSON.parse(savedUser));
+      }
+
+      const savedRegistered = typeof window !== "undefined" ? localStorage.getItem("blogora_registered_users") : null;
+      if (savedRegistered) {
+        setRegisteredUsers(JSON.parse(savedRegistered));
+      } else {
+        localStorage.setItem("blogora_registered_users", JSON.stringify(DEFAULT_USERS));
       }
     } catch (e) {
       console.warn("Storage access denied: session cannot be restored from localStorage.", e);
@@ -34,24 +52,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
+  const checkEmailExists = (email: string): boolean => {
+    const normalizedEmail = email.toLowerCase().trim();
+    return registeredUsers.some((u) => u.email.toLowerCase().trim() === normalizedEmail);
+  };
+
   const login = async (email: string) => {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 600));
     
-    // Extract a mock name from the email
-    const namePart = email.split("@")[0];
-    const name = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+    const normalizedEmail = email.toLowerCase().trim();
+    const existingUser = registeredUsers.find((u) => u.email.toLowerCase().trim() === normalizedEmail);
     
-    const mockUser: User = {
-      name,
-      email,
-      avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`
-    };
+    if (!existingUser) {
+      throw new Error("No account found with this email. Please register first.");
+    }
     
-    setUser(mockUser);
+    setUser(existingUser);
     
     try {
-      localStorage.setItem("blogora_user", JSON.stringify(mockUser));
+      localStorage.setItem("blogora_user", JSON.stringify(existingUser));
     } catch (e) {
       console.warn("Storage access denied: session will not persist across reloads.", e);
     }
@@ -61,16 +81,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 600));
     
-    const mockUser: User = {
-      name,
-      email,
-      avatar: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80`
+    const normalizedEmail = email.toLowerCase().trim();
+    const exists = checkEmailExists(normalizedEmail);
+    
+    if (exists) {
+      throw new Error("This email is already registered. Please sign in instead.");
+    }
+    
+    const newUser: User = {
+      name: name.trim(),
+      email: normalizedEmail,
+      avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`
     };
     
-    setUser(mockUser);
+    const updatedList = [...registeredUsers, newUser];
+    setRegisteredUsers(updatedList);
+    setUser(newUser);
     
     try {
-      localStorage.setItem("blogora_user", JSON.stringify(mockUser));
+      localStorage.setItem("blogora_registered_users", JSON.stringify(updatedList));
+      localStorage.setItem("blogora_user", JSON.stringify(newUser));
     } catch (e) {
       console.warn("Storage access denied: session will not persist across reloads.", e);
     }
@@ -86,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, registeredUsers, login, register, logout, checkEmailExists }}>
       {!loading && children}
     </AuthContext.Provider>
   );
